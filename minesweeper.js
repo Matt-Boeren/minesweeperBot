@@ -7,15 +7,15 @@ function create2DArray(rows, cols){
 	}
 	return array;
 }
-let columns = 5;
-let rows = 5;
-let width = 50;
-let bombs = 5;
+let columns = 16;
+let rows = 30;
+let width = 40;
+let bombs = 99;
 let grid = create2DArray(rows, columns);
-let revealed = create2DArray(rows, columns);
-for(let i = 0; i < revealed.length; i++){
-	for(let j = 0; j < revealed[i].length; j++){
-		revealed[i][j] = false;
+let mapping = create2DArray(rows, columns);
+for(let i = 0; i < mapping.length; i++){
+	for(let j = 0; j < mapping[i].length; j++){
+		mapping[i][j] = "H";
 	}
 }
 let firstClick = false;
@@ -33,7 +33,7 @@ for(let i = 0; i < grid.length; i++){
 }
 
 function makePlayingFeeld(x,y){
-	ctx.font = "50px Arial";
+	ctx.font = "bold 35px Arial";
 	ctx.fillStyle = "black";
 	ctx.textAlign = "center";
 	ctx.textBaseline = "middle";
@@ -112,11 +112,12 @@ function flood(x,y){
 		const newx = revealFload[j][0];
 		const newy = revealFload[j][1];
 		if(newx >= 0 && newx < grid.length && newy >=0 && newy < grid[newx].length){
-			if(revealed[newx][newy] !== true){
-				revealed[newx][newy] = true;
+			if(mapping[newx][newy] === "H"){
+				mapping[newx][newy] = grid[newx][newy];
 
-				if(grid[newx][newy] === undefined){
-					flood(newx,newy);	
+				if(mapping[newx][newy] === undefined){
+					flood(newx,newy);
+					mapping[newx][newy] = "";
 				}
 			}
 		}
@@ -124,38 +125,54 @@ function flood(x,y){
 }
 
 function reveal(x,y){
-	if(grid[x][y] === "X"){
-		for(let i = 0; i < revealed.length; i++){
-			for(let j = 0; j < revealed[i].length; j++){
-				revealed[i][j] = true;
+	if(mapping[x][y] !== "F"){
+		if(grid[x][y] === "X"){
+			for(let i = 0; i < mapping.length; i++){
+				for(let j = 0; j < mapping[i].length; j++){
+					mapping[i][j] = grid[i][j];
+					if(mapping[i][j] === undefined){
+						mapping[i][j] = "";
+					}
+				}
+			}
+		}
+		else{
+			mapping[x][y] = grid[x][y];
+			if(mapping[x][y] === undefined){
+				mapping[x][y] = "";
+				flood(x,y);
 			}
 		}
 	}
+}
+
+function flag(x,y){
+	if(mapping [x][y] === "H"){
+		mapping[x][y] = "F";
+	}
 	else{
-		revealed[x][y] = true;
-		if(grid[x][y] === undefined){
-			flood(x,y);
+		if(mapping[x][y] === "F"){
+			mapping[x][y] = "H";
 		}
 	}
+}
+
+function show(){
 	ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-	for(let i = 0; i < grid.length; i++){
-		for(let j=0; j < grid[i].length; j++){
-
+	for(let i = 0; i < mapping.length; i++){
+		for(let j = 0; j < mapping[i].length; j++){
 			ctx.fillStyle = "lightgrey";
 			ctx.strokeStyle = "black";
 			ctx.lineWidth = 2;
 			ctx.fillRect(i*width, j*width, width, width);
 			ctx.strokeRect(i*width, j*width, width, width);
-
-			if(revealed[i][j] === true){	
-				if(grid[i][j] !== undefined){
-					ctx.font = "50px Arial";
-					ctx.fillStyle = "black";
-					ctx.textAlign = "center";
-					ctx.textBaseline = "middle";
-					ctx.fillText(grid[i][j], (i * width) + (width/2), (j * width) + (width/2));
-				}
+			if(mapping[i][j] !== "H"){
+				ctx.font = "bold 35px Arial";
+				ctx.fillStyle = "black";
+				ctx.textAlign = "center";
+				ctx.textBaseline = "middle";
+				ctx.fillText(mapping[i][j], (i * width) + (width/2), (j * width) + (width/2));
 			}
 			else{
 				
@@ -167,18 +184,50 @@ function reveal(x,y){
 			}
 		}
 	}
+
+	let bombsFound = 0;
+	let flags = 0;
+	for(let i = 0; i < mapping.length; i++){
+		for(let j = 0; j < mapping[i].length; j++){
+			if(mapping[i][j] === "F"){
+				flags++;
+				if(grid[i][j] === "X"){
+					bombsFound++;
+				}
+			}
+		}
+	}
+	if(bombsFound === flags && flags === bombs){
+		setTimeout(() => {
+			alert("Congratulations, you finished the game!");
+		}, 0);
+	}
 }
+
 function afterClick(event){
 	const rect = canvas.getBoundingClientRect();
 	const x = Math.floor((event.clientX - rect.left)/width);
 	const y = Math.floor((event.clientY - rect.top)/width);
-	if(firstClick === false){
-		makePlayingFeeld(x,y);
-		reveal(x,y);
-		firstClick = true;
+
+	if(event.button === 0){
+		if(firstClick === false){
+			makePlayingFeeld(x,y);
+			reveal(x,y);
+			firstClick = true;
+		}
+		else{
+			reveal(x,y);
+		}
 	}
 	else{
-		reveal(x,y);
+		flag(x,y);
 	}
+
+	show();
 }
 canvas.addEventListener("click", afterClick);
+
+canvas.addEventListener("contextmenu", function (event) {
+	event.preventDefault();
+	afterClick(event);
+});
