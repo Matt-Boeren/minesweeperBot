@@ -1,12 +1,6 @@
 const canvas = document.querySelector('canvas');
 const ctx = canvas.getContext("2d");
-function create2DArray(rows, cols){
-	let array = new Array(rows);
-	for(let i=0; i<rows; i++){
-		array[i] = new Array(cols);
-	}
-	return array;
-}
+
 let columns = 16;
 let rows = 30;
 let width = 40;
