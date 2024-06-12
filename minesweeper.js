@@ -1,12 +1,6 @@
 const canvas = document.querySelector('canvas');
 const ctx = canvas.getContext("2d");
-function create2DArray(rows, cols){
-	let array = new Array(rows);
-	for(let i=0; i<rows; i++){
-		array[i] = new Array(cols);
-	}
-	return array;
-}
+
 let columns = 16;
 let rows = 30;
 let width = 40;
@@ -125,6 +119,12 @@ function flood(x,y){
 }
 
 function reveal(x,y){
+
+
+	if(firstClick === false){
+		makePlayingFeeld(x,y);
+		firstClick = true;
+	}
 	if(mapping[x][y] !== "F"){
 		if(grid[x][y] === "X"){
 			for(let i = 0; i < mapping.length; i++){
@@ -210,14 +210,7 @@ function afterClick(event){
 	const y = Math.floor((event.clientY - rect.top)/width);
 
 	if(event.button === 0){
-		if(firstClick === false){
-			makePlayingFeeld(x,y);
-			reveal(x,y);
-			firstClick = true;
-		}
-		else{
-			reveal(x,y);
-		}
+		reveal(x,y);
 	}
 	else{
 		flag(x,y);
@@ -231,3 +224,7 @@ canvas.addEventListener("contextmenu", function (event) {
 	event.preventDefault();
 	afterClick(event);
 });
+
+function getMapping(){
+	return mapping;
+}
