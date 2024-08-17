@@ -144,6 +144,7 @@ function reveal(x,y){
 			}
 		}
 	}
+	whileCalcProb();
 }
 
 function flag(x,y){
@@ -155,11 +156,13 @@ function flag(x,y){
 			mapping[x][y] = "H";
 		}
 	}
+
+	whileCalcProb();
 }
 
 function show(){
 	ctx.clearRect(0, 0, canvas.width, canvas.height);
-
+	let probMapping = getProbTable();
 	for(let i = 0; i < mapping.length; i++){
 		for(let j = 0; j < mapping[i].length; j++){
 			ctx.fillStyle = "lightgrey";
@@ -169,7 +172,12 @@ function show(){
 			ctx.strokeRect(i*width, j*width, width, width);
 			if(mapping[i][j] !== "H"){
 				ctx.font = "bold 35px Arial";
-				ctx.fillStyle = "black";
+				if(mapping[i][j] === "F"){
+					ctx.fillStyle = "red";
+				}
+				else{
+					ctx.fillStyle = "black";
+				}
 				ctx.textAlign = "center";
 				ctx.textBaseline = "middle";
 				ctx.fillText(mapping[i][j], (i * width) + (width/2), (j * width) + (width/2));
@@ -181,6 +189,15 @@ function show(){
 				ctx.lineWidth = 2;
 				ctx.fillRect(i*width, j*width, width, width);
 				ctx.strokeRect(i*width, j*width, width, width);
+
+				if(typeof(probMapping[i][j]) === 'number'){
+					ctx.font = "20px Arial";
+					ctx.fillStyle = "black";
+					ctx.textAlign = "center";
+					ctx.textBaseline = "middle";
+					let number = Math.floor(probMapping[i][j]*100);
+					ctx.fillText(number, (i * width) + (width/2), (j * width) + (width/2));
+				}
 			}
 		}
 	}
