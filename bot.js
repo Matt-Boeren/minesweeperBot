@@ -1,6 +1,6 @@
 let probTable = create2DArray(rows, columns);
 let botMaping = getMapping();
-reveal(10,5);
+reveal(0,0);
 show();
 
 function whileCalcProb(){
@@ -28,7 +28,7 @@ function calcProbability(){
 
 					let x = aroundXY[k][0];
 					let y = aroundXY[k][1];
-					if(x >= 0 && x < grid.length && y >=0 && y < grid[i].length){
+					if(x >= 0 && x < botMapping.length && y >=0 && y < botMapping[i].length){
 						if(typeof(botMapping[x][y]) === 'number'){
 							probs.push(getProbFromXY(x, y));
 						}
@@ -51,11 +51,36 @@ function calcProbability(){
 			}
 		}
 	}
-	return conditionDone;
 }
-
 function getProbFromXY(x, y){
 	let number = botMapping[x][y];
+	const aroundXY = [
+		[x-1, y-1], [x-1, y], [x-1, y+1],
+		[x, y-1],  [x, y+1],
+		[x+1, y-1], [x+1, y], [x+1, y+1]
+	];
+	let flags = 0;
+	let unrevealed = 0;
+	for(let i = 0; i < aroundXY.length; i++){
+
+			let newX = aroundXY[i][0];
+			let newY = aroundXY[i][1];
+
+
+		if(newX >= 0 && newX < botMapping.length && newY >=0 && newY < botMapping[i].length){
+			if(botMapping[newX][newY] == "F" || probTable[newX][newY] === 1){
+				flags++;
+			}
+			if(botMapping[newX][newY] == 'H' && probTable[newX][newY] !== 0 && probTable[newX][newY] !== 1){
+				unrevealed++;
+			}
+		}
+	}
+	return (number - flags)/unrevealed;
+}
+
+
+function getProbFromXYNumber(x, y, number){
 	const aroundXY = [
 		[x-1, y-1], [x-1, y], [x-1, y+1],
 		[x, y-1],  [x, y+1],
@@ -109,4 +134,53 @@ function averageOut(arr){
 }
 function getProbTable(){
  return probTable;
+}
+
+
+function arrayInOther(array1, array2){
+	for(let i = 0; i < array1.length; i++){
+		let item = array1[i]; 
+		let itemIn = false;
+		for(let j = 0; j < array2.length; j++){
+			if(arraysEquals(item, array2[j]) === true){
+				itemIn = true;
+				break; 
+			}
+		}
+		if(itemIn === false){
+			return false;
+		}
+	}
+	return true;
+}
+
+function arraysEquals(array1, array2){
+	if(array1.length !== array2.length){
+		return false;
+	}
+	else{
+		for(let i = 0; i < array1.length; i++){
+			if(array1[i] !== array2[i]){
+				return false;
+			}
+		}
+	}
+	return true;
+}
+
+function deleteArrayFromOther(array1, array2){
+	let result = [];
+	for(let i = 0; i < array1.length; i++){
+		let inArray = false;
+		for(let j = 0; j < array2.length; j++){
+			if(arraysEquals(array1[i], array2[j])){
+				inArray = true;
+				break;
+			}
+		}
+		if(inArray === false){
+			result.push(array1[i]);
+		}
+	}
+	return result;
 }
