@@ -39,7 +39,15 @@ function makePlayingFeeld(x,y){
   ];
     
   function isExcluded(row, col) {
-		return exclusionZone.some(([exRow, exCol]) => exRow === row && exCol === col);
+    for (let i = 0; i < exclusionZone.length; i++) {
+        const exRow = exclusionZone[i][0];
+        const exCol = exclusionZone[i][1];
+        
+        if (exRow === row && exCol === col) {
+            return true;
+        }
+    }
+    return false;
   }
 
 	for(let i = 0; i < bombs; i++){
@@ -144,6 +152,7 @@ function reveal(x,y){
 			}
 		}
 	}
+	whileCalcProb();
 }
 
 function flag(x,y){
@@ -155,11 +164,11 @@ function flag(x,y){
 			mapping[x][y] = "H";
 		}
 	}
-	bruteCalc();
 }
 
 function show(){
 	ctx.clearRect(0, 0, canvas.width, canvas.height);
+	let probMapping = getProbMapping();
 	for(let i = 0; i < mapping.length; i++){
 		for(let j = 0; j < mapping[i].length; j++){
 			ctx.fillStyle = "lightgrey";
@@ -187,6 +196,14 @@ function show(){
 				ctx.fillRect(i*width, j*width, width, width);
 				ctx.strokeRect(i*width, j*width, width, width);
 
+				if(typeof(probMapping[i][j]) === 'number'){
+					ctx.font = "20px Arial";
+					ctx.fillStyle = "black";
+					ctx.textAlign = "center";
+					ctx.textBaseline = "middle";
+					let number = Math.floor(probMapping[i][j]*100);
+					ctx.fillText(number, (i * width) + (width/2), (j * width) + (width/2));
+				}
 			}
 		}
 	}

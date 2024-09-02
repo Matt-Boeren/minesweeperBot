@@ -8,6 +8,7 @@ function whileCalcProb(){
 	while(condition === true){
 		condition = calcProbability();
 	}
+	overlapping();
 }
 function calcProbability(){
 
@@ -51,6 +52,7 @@ function calcProbability(){
 			}
 		}
 	}
+	return conditionDone;
 }
 function getProbFromXY(x, y){
 	let number = botMapping[x][y];
@@ -132,55 +134,112 @@ function averageOut(arr){
 	average = average/arr.length;
 	return average;
 }
-function getProbTable(){
- return probTable;
-}
+function overlapping(){
+	let numberTiles = [];
+	for(let i = 0; i < botMapping.length; i++){
+		for(let j = 0; j < botMapping[i].length; j++){
+			if(typeof(botMapping[i][j]) == 'number'){
 
+				const aroundIJ = [
+					[i-1, j-1], [i-1, j], [i-1, j+1],
+					[i, j-1],  [i, j+1],
+					[i+1, j-1], [i+1, j], [i+1, j+1]
+				];
 
-function arrayInOther(array1, array2){
-	for(let i = 0; i < array1.length; i++){
-		let item = array1[i]; 
-		let itemIn = false;
-		for(let j = 0; j < array2.length; j++){
-			if(arraysEquals(item, array2[j]) === true){
-				itemIn = true;
-				break; 
+				for(let k = 0; k < aroundIJ.length; k++){	
+					const x = aroundIJ[k][0];
+					const y = aroundIJ[k][1];
+					if(x >= 0 && x < botMapping.length && y >=0 && y < botMapping[0].length){
+						if(botMapping[x][y] == "H"){
+							numberTiles.push([i, j]);
+							break;
+						}
+					}
+				}
 			}
 		}
-		if(itemIn === false){
+	}
+
+	for(let i = 0; i < numberTiles.length; i++){
+		
+		let ix = numberTiles[i][0];
+		let iy = numberTiles[i][1];
+		const aroundXYI = [
+			[ix-1, iy-1], [ix-1, iy], [ix-1, iy+1],
+			[ix, iy-1],  [ix, iy+1],
+			[ix+1, iy-1], [ix+1, iy], [ix+1, iy+1]
+		];
+		let aroundI = [];
+		for(let k = 0; k < aroundXYI.length; k++){	
+			const newx = aroundXYI[k][0];
+			const newy = aroundXYI[k][1];
+			if(newx >= 0 && newx < botMapping.length && newy >=0 && newy < botMapping[0].length){
+				if(botMapping[newx][newy] === "H"){
+					aroundI.push([newx, newy]);
+				}
+			}
+		}
+		for(let j = 0; j < numberTiles.length; j++){
+			if(i !== j){
+				let X = numberTiles[j][0];
+				let Y = numberTiles[j][1];
+				const aroundXY = [
+					[X-1, Y-1], [X-1, Y], [X-1, Y+1],
+					[X, Y-1],  [X, Y+1],
+					[X+1, Y-1], [X+1, Y], [X+1, Y+1]
+				];
+				let aroundJ = [];
+				for(let k = 0; k < aroundXY.length; k++){	
+					const newx = aroundXY[k][0];
+					const newy = aroundXY[k][1];
+					if(newx >= 0 && newx < botMapping.length && newy >=0 && newy < botMapping[0].length){
+						if(botMapping[newx][newy] === "H"){
+							aroundJ.push([newx, newy]);
+						}
+					}
+				}
+				if(aroundI.length > aroundJ.length){
+					if(arrayInOther(aroundI, aroundJ) === true){
+						console.log("break");
+						console.log(aroundI);
+						console.log(aroundJ);	
+					}
+				}
+			}
+		}
+	}
+}
+
+function arrayInOther(longArray, shortArray){
+	if(shortArray.length > longArray.length){
+		return false;
+	}
+	for(let i = 0; i < shortArray.length; i++){
+		let inArray = false;
+		for(let j = 0; j < longArray.length; j++){
+			if(compareArrays(shortArray[i], longArray[j]) === true){
+				inArray = true;
+				break;
+			}
+		}
+		if(inArray === false){
 			return false;
 		}
 	}
 	return true;
 }
 
-function arraysEquals(array1, array2){
+function compareArrays(array1, array2){
 	if(array1.length !== array2.length){
 		return false;
 	}
-	else{
-		for(let i = 0; i < array1.length; i++){
-			if(array1[i] !== array2[i]){
-				return false;
-			}
+	for(let i = 0; i < array1.length; i++){
+		if(array1[i] !== array2[i]){
+			return false;
 		}
 	}
 	return true;
 }
-
-function deleteArrayFromOther(array1, array2){
-	let result = [];
-	for(let i = 0; i < array1.length; i++){
-		let inArray = false;
-		for(let j = 0; j < array2.length; j++){
-			if(arraysEquals(array1[i], array2[j])){
-				inArray = true;
-				break;
-			}
-		}
-		if(inArray === false){
-			result.push(array1[i]);
-		}
-	}
-	return result;
+function getProbMapping(){
+	return probTable;
 }
