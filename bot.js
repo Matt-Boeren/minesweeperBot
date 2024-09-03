@@ -4,6 +4,8 @@ reveal(0,0);
 show();
 
 function whileCalcProb(){
+	
+	botMapping = getMapping();
 	let condition = true;
 	while(condition === true){
 		condition = calcProbability();
@@ -12,7 +14,6 @@ function whileCalcProb(){
 }
 function calcProbability(){
 
-	botMapping = getMapping();
 	let conditionDone = false;
 	for(let i = 0; i < botMapping.length; i++){
 		for(let j = 0; j < botMapping[i].length; j++){
@@ -31,7 +32,7 @@ function calcProbability(){
 					let y = aroundXY[k][1];
 					if(x >= 0 && x < botMapping.length && y >=0 && y < botMapping[i].length){
 						if(typeof(botMapping[x][y]) === 'number'){
-							probs.push(getProbFromXY(x, y));
+							probs.push(getProbFromXY(x, y, botMapping));
 						}
 					}
 				}
@@ -54,35 +55,11 @@ function calcProbability(){
 	}
 	return conditionDone;
 }
-function getProbFromXY(x, y){
-	let number = botMapping[x][y];
-	const aroundXY = [
-		[x-1, y-1], [x-1, y], [x-1, y+1],
-		[x, y-1],  [x, y+1],
-		[x+1, y-1], [x+1, y], [x+1, y+1]
-	];
-	let flags = 0;
-	let unrevealed = 0;
-	for(let i = 0; i < aroundXY.length; i++){
+function getProbFromXY(x, y, mapping){
+	let number = mapping[x][y];
+	if(number === 0){
 
-			let newX = aroundXY[i][0];
-			let newY = aroundXY[i][1];
-
-
-		if(newX >= 0 && newX < botMapping.length && newY >=0 && newY < botMapping[i].length){
-			if(botMapping[newX][newY] == "F" || probTable[newX][newY] === 1){
-				flags++;
-			}
-			if(botMapping[newX][newY] == 'H' && probTable[newX][newY] !== 0 && probTable[newX][newY] !== 1){
-				unrevealed++;
-			}
-		}
 	}
-	return (number - flags)/unrevealed;
-}
-
-
-function getProbFromXYNumber(x, y, number){
 	const aroundXY = [
 		[x-1, y-1], [x-1, y], [x-1, y+1],
 		[x, y-1],  [x, y+1],
@@ -92,15 +69,14 @@ function getProbFromXYNumber(x, y, number){
 	let unrevealed = 0;
 	for(let i = 0; i < aroundXY.length; i++){
 
-			let newX = aroundXY[i][0];
-			let newY = aroundXY[i][1];
+		let newX = aroundXY[i][0];
+		let newY = aroundXY[i][1];
 
-
-		if(newX >= 0 && newX < botMapping.length && newY >=0 && newY < botMapping[i].length){
-			if(botMapping[newX][newY] == "F" || probTable[newX][newY] === 1){
+		if(newX >= 0 && newX < mapping.length && newY >=0 && newY < mapping[i].length){
+			if(mapping[newX][newY] == "F" || probTable[newX][newY] === 1){
 				flags++;
 			}
-			if(botMapping[newX][newY] == 'H' && probTable[newX][newY] !== 0 && probTable[newX][newY] !== 1){
+			if(mapping[newX][newY] == 'H' && probTable[newX][newY] !== 0 && probTable[newX][newY] !== 1){
 				unrevealed++;
 			}
 		}
@@ -136,10 +112,14 @@ function averageOut(arr){
 }
 function overlapping(){
 	let numberTiles = [];
+	let tempProbTable = create2DArray(rows, columns);
+	let tempMapping = JSON.parse(JSON.stringify(botMapping));
 	for(let i = 0; i < botMapping.length; i++){
 		for(let j = 0; j < botMapping[i].length; j++){
 			if(typeof(botMapping[i][j]) == 'number'){
-
+				
+				tempMapping[i][j] = botMapping[i][j];
+				
 				const aroundIJ = [
 					[i-1, j-1], [i-1, j], [i-1, j+1],
 					[i, j-1],  [i, j+1],
@@ -164,6 +144,7 @@ function overlapping(){
 		
 		let ix = numberTiles[i][0];
 		let iy = numberTiles[i][1];
+		let numberI = botMapping[ix][iy];
 		const aroundXYI = [
 			[ix-1, iy-1], [ix-1, iy], [ix-1, iy+1],
 			[ix, iy-1],  [ix, iy+1],
@@ -183,6 +164,7 @@ function overlapping(){
 			if(i !== j){
 				let X = numberTiles[j][0];
 				let Y = numberTiles[j][1];
+				let numberJ = botMapping[X][Y];
 				const aroundXY = [
 					[X-1, Y-1], [X-1, Y], [X-1, Y+1],
 					[X, Y-1],  [X, Y+1],
@@ -200,14 +182,71 @@ function overlapping(){
 				}
 				if(aroundI.length > aroundJ.length){
 					if(arrayInOther(aroundI, aroundJ) === true){
-						console.log("break");
-						console.log(aroundI);
-						console.log(aroundJ);	
+						for(let k = 0; k < aroundJ.length; k++){
+							if(probTable[aroundJ[k][0]][aroundJ[k][1]] !== 0 && probTable[aroundJ[k][0]][aroundJ[k][1]] !== 1){
+								tempProbTable[aroundJ[k][0]][aroundJ[k][1]] = numberJ/aroundJ.length;
+							}
+						}
+						aroundI = cutArray(aroundI, aroundJ);
+						numberI = numberI - numberJ;
+						console.log(numberI);
 					}
 				}
 			}
 		}
+		for(let j = 0; j < aroundI.length; j++){
+			if(tempProbTable[aroundI[j][0]][aroundI[j][1]] === undefined && (probTable[aroundI[j][0]][aroundI[j][1]] !== 0 && probTable[aroundI[j][0]][aroundI[j][1]] !== 1)){ 
+				tempProbTable[aroundI[j][0]][aroundI[j][1]] = 'C';
+			}
+		}
+		tempMapping[ix][iy] = numberI;
 	}
+	for(let i = 0; i < tempProbTable.length; i++){
+		for(let j = 0; j < tempProbTable[i].length; j++){
+			if(tempProbTable[i][j] === 'C'){
+				tempProbTable[i][j] = calcNewProb(i, j, tempMapping);
+			}
+		}
+	}
+	for(let i = 0; i < tempProbTable.length; i++){
+		for(let j = 0; j < tempProbTable[i].length; j++){
+			if(tempProbTable[i][j] !== undefined){
+				probTable[i][j] = tempProbTable[i][j];
+			}
+		}
+	}
+}
+
+function calcNewProb(i, j, mapping){
+	console.log(mapping);
+	const aroundIJ = [
+		[i-1, j-1], [i-1, j], [i-1, j+1],
+		[i, j-1],  [i, j+1],
+		[i+1, j-1], [i+1, j], [i+1, j+1]
+	];
+	let probs = [];
+	for(let k = 0; k < aroundIJ.length; k++){
+		let x = aroundIJ[k][0];
+		let y = aroundIJ[k][1];
+
+		if(typeof(mapping[x][y]) === 'number'){
+			probs.push(getNewProbFromXY(x, y, mapping));
+		}
+	}
+	console.log(probs);
+	if(contains100(probs) === true){
+		return 1;
+	}
+	else if(contains0(probs) === true){
+		return 0;
+	}
+	else{
+		return averageOut(probs);
+	}
+}
+
+function getNewProbFromXY(x, y, mapping){
+
 }
 
 function arrayInOther(longArray, shortArray){
@@ -239,6 +278,23 @@ function compareArrays(array1, array2){
 		}
 	}
 	return true;
+}
+
+function cutArray(longArray, shortArray){
+	let result = [];
+	for(let i = 0; i < longArray.length; i++){
+		let shouldAdd = true;
+		for(let j = 0; j < shortArray.length; j++){
+			if(compareArrays(longArray[i], shortArray[j]) === true){
+				shouldAdd = false;
+				break;
+			}
+		}
+			if(shouldAdd === true){
+				result.push(longArray[i]);
+			}
+	}
+	return result;
 }
 function getProbMapping(){
 	return probTable;
